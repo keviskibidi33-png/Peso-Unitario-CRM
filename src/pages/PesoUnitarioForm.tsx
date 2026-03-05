@@ -7,7 +7,22 @@ import type { PesoUnitarioPayload } from '@/types'
 
 const DRAFT_KEY = 'peso_unitario_form_draft_v1'
 const DEBOUNCE_MS = 700
+const REVISORES = ['-', 'FABIAN LA ROSA'] as const
+const APROBADORES = ['-', 'IRMA COAQUIRA'] as const
 const empty3 = () => [null, null, null] as Array<number | null>
+
+const EQUIPO_OPTIONS = {
+  equipo_molde_codigo: ['-', 'INS-0005 (MOLDE 1)', 'INS-0004 (MOLDE 2)', 'INS-0003 (MOLDE 3)', 'INS-0135 (MOLDE 4)'],
+  equipo_balanza_codigo: ['-', 'EQP-0054 (MOLDE 1-2)', 'EQP-0059 (MOLDE 3-4)'],
+  equipo_varilla_codigo: ['-', 'INS-0132'],
+  equipo_horno_codigo: ['-', 'EQP-0049'],
+} as const
+
+const withCurrentOption = (value: string | null | undefined, base: readonly string[]) => {
+  const current = (value ?? '').trim()
+  if (!current || base.includes(current)) return base
+  return [...base, current]
+}
 
 type TripleFieldKey =
   | 'prueba_d_masa_agregado_mas_medida_kg'
@@ -24,6 +39,13 @@ const parseNum = (v: string) => {
 }
 
 const shortYear = () => new Date().getFullYear().toString().slice(-2)
+const formatTodayShortDate = () => {
+  const d = new Date()
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yy = String(d.getFullYear()).slice(-2)
+  return `${dd}/${mm}/${yy}`
+}
 
 const normalizeMuestraCode = (raw: string): string => {
   const value = raw.trim().toUpperCase()
@@ -74,7 +96,7 @@ const getEnsayoId = () => {
 const initialState = (): PesoUnitarioPayload => ({
   muestra: '',
   numero_ot: '',
-  fecha_ensayo: '',
+  fecha_ensayo: formatTodayShortDate(),
   realizado_por: '',
   recipiente_molde_numero: '',
   recipiente_masa_medida_kg: null,
@@ -93,15 +115,15 @@ const initialState = (): PesoUnitarioPayload => ({
   vacios_j_densidad_agua_kg_m3: empty3(),
   vacios_k_porcentaje: empty3(),
   vacios_promedio_pct: null,
-  equipo_molde_codigo: 'INS-0005 (Molde 1)',
-  equipo_balanza_codigo: 'EQP-0054',
-  equipo_varilla_codigo: 'INS-0132',
-  equipo_horno_codigo: 'EQP-0049',
+  equipo_molde_codigo: '-',
+  equipo_balanza_codigo: '-',
+  equipo_varilla_codigo: '-',
+  equipo_horno_codigo: '-',
   observaciones: '',
   revisado_por: '-',
-  revisado_fecha: '',
+  revisado_fecha: formatTodayShortDate(),
   aprobado_por: '-',
-  aprobado_fecha: '',
+  aprobado_fecha: formatTodayShortDate(),
 })
 
 function avg(values: Array<number | null>): number | null {
@@ -334,17 +356,17 @@ export default function PesoUnitarioForm() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-100 text-xs font-semibold text-slate-800"><tr><th className="border-b border-r border-slate-300 py-1">Equipo utilizado</th><th className="border-b border-slate-300 py-1">Codigo</th></tr></thead>
                   <tbody>
-                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Molde</td><td className="border-t border-slate-300 p-1"><input className={inputClass} value={form.equipo_molde_codigo ?? ''} onChange={(e) => setField('equipo_molde_codigo', e.target.value)} /></td></tr>
-                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Balanza</td><td className="border-t border-slate-300 p-1"><input className={inputClass} value={form.equipo_balanza_codigo ?? ''} onChange={(e) => setField('equipo_balanza_codigo', e.target.value)} /></td></tr>
-                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Varilla de apisonamiento</td><td className="border-t border-slate-300 p-1"><input className={inputClass} value={form.equipo_varilla_codigo ?? ''} onChange={(e) => setField('equipo_varilla_codigo', e.target.value)} /></td></tr>
-                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Horno</td><td className="border-t border-slate-300 p-1"><input className={inputClass} value={form.equipo_horno_codigo ?? ''} onChange={(e) => setField('equipo_horno_codigo', e.target.value)} /></td></tr>
+                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Molde</td><td className="border-t border-slate-300 p-1"><select className={inputClass} value={form.equipo_molde_codigo ?? '-'} onChange={(e) => setField('equipo_molde_codigo', e.target.value)}>{withCurrentOption(form.equipo_molde_codigo, EQUIPO_OPTIONS.equipo_molde_codigo).map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select></td></tr>
+                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Balanza</td><td className="border-t border-slate-300 p-1"><select className={inputClass} value={form.equipo_balanza_codigo ?? '-'} onChange={(e) => setField('equipo_balanza_codigo', e.target.value)}>{withCurrentOption(form.equipo_balanza_codigo, EQUIPO_OPTIONS.equipo_balanza_codigo).map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select></td></tr>
+                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Varilla de apisonamiento</td><td className="border-t border-slate-300 p-1"><select className={inputClass} value={form.equipo_varilla_codigo ?? '-'} onChange={(e) => setField('equipo_varilla_codigo', e.target.value)}>{withCurrentOption(form.equipo_varilla_codigo, EQUIPO_OPTIONS.equipo_varilla_codigo).map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select></td></tr>
+                    <tr><td className="border-t border-r border-slate-300 px-2 py-1">Horno</td><td className="border-t border-slate-300 p-1"><select className={inputClass} value={form.equipo_horno_codigo ?? '-'} onChange={(e) => setField('equipo_horno_codigo', e.target.value)}>{withCurrentOption(form.equipo_horno_codigo, EQUIPO_OPTIONS.equipo_horno_codigo).map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select></td></tr>
                   </tbody>
                 </table>
               </div>
 
               <div className="overflow-hidden rounded-lg border border-slate-300"><div className="border-b border-slate-300 bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-800">Observaciones</div><div className="p-2"><textarea className="w-full resize-none rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-900 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500/35" rows={4} value={form.observaciones ?? ''} onChange={(e)=>setField('observaciones', e.target.value)} /></div></div>
-              <div className="overflow-hidden rounded-lg border border-slate-300 bg-slate-50"><div className="border-b border-slate-300 px-2 py-1 text-sm font-semibold">Revisado</div><div className="space-y-2 p-2"><input className={inputClass} value={form.revisado_por ?? ''} onChange={(e)=>setField('revisado_por', e.target.value)} /><input className={inputClass} value={form.revisado_fecha ?? ''} onChange={(e)=>setField('revisado_fecha', e.target.value)} onBlur={() => setField('revisado_fecha', normalizeFlexibleDate(form.revisado_fecha ?? ''))} placeholder="Fecha" /></div></div>
-              <div className="overflow-hidden rounded-lg border border-slate-300 bg-slate-50"><div className="border-b border-slate-300 px-2 py-1 text-sm font-semibold">Aprobado</div><div className="space-y-2 p-2"><input className={inputClass} value={form.aprobado_por ?? ''} onChange={(e)=>setField('aprobado_por', e.target.value)} /><input className={inputClass} value={form.aprobado_fecha ?? ''} onChange={(e)=>setField('aprobado_fecha', e.target.value)} onBlur={() => setField('aprobado_fecha', normalizeFlexibleDate(form.aprobado_fecha ?? ''))} placeholder="Fecha" /></div></div>
+              <div className="overflow-hidden rounded-lg border border-slate-300 bg-slate-50"><div className="border-b border-slate-300 px-2 py-1 text-sm font-semibold">Revisado</div><div className="space-y-2 p-2"><select className={inputClass} value={form.revisado_por ?? '-'} onChange={(e)=>setField('revisado_por', e.target.value)}>{REVISORES.map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select><input className={inputClass} value={form.revisado_fecha ?? ''} onChange={(e)=>setField('revisado_fecha', e.target.value)} onBlur={() => setField('revisado_fecha', normalizeFlexibleDate(form.revisado_fecha ?? ''))} placeholder="Fecha" /></div></div>
+              <div className="overflow-hidden rounded-lg border border-slate-300 bg-slate-50"><div className="border-b border-slate-300 px-2 py-1 text-sm font-semibold">Aprobado</div><div className="space-y-2 p-2"><select className={inputClass} value={form.aprobado_por ?? '-'} onChange={(e)=>setField('aprobado_por', e.target.value)}>{APROBADORES.map((opt) => <option key={opt} value={opt}>{opt}</option>)}</select><input className={inputClass} value={form.aprobado_fecha ?? ''} onChange={(e)=>setField('aprobado_fecha', e.target.value)} onBlur={() => setField('aprobado_fecha', normalizeFlexibleDate(form.aprobado_fecha ?? ''))} placeholder="Fecha" /></div></div>
             </div>
 
             <div className="border-t-2 border-blue-900 px-3 py-2 text-center text-[11px] leading-tight text-slate-700"><p>WEB: www.geofal.com.pe  E-MAIL: laboratorio@geofal.com.pe / geofal.sac@gmail.com</p><p>Av. Maranon 763, Los Olivos-Lima | Telefono 01522-1851</p></div>
