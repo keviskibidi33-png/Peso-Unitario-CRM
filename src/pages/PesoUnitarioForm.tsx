@@ -100,7 +100,7 @@ const getEnsayoId = () => {
 const initialState = (): PesoUnitarioPayload => ({
   muestra: '',
   numero_ot: '',
-  fecha_ensayo: formatTodayShortDate(),
+  fecha_ensayo: '',
   realizado_por: '',
   recipiente_molde_numero: '',
   recipiente_masa_medida_kg: null,
