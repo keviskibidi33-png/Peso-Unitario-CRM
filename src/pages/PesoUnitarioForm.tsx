@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { Download, Loader2, Scale, Trash2 } from 'lucide-react'
 import { getPesoUnitarioEnsayoDetail, saveAndDownloadPesoUnitarioExcel, savePesoUnitarioEnsayo } from '@/services/api'
 import type { PesoUnitarioPayload } from '@/types'
+import FormatConfirmModal from '../components/FormatConfirmModal'
 
 const DRAFT_KEY = 'peso_unitario_form_draft_v1'
 const DEBOUNCE_MS = 700
@@ -39,13 +40,7 @@ const parseNum = (v: string) => {
 }
 
 const shortYear = () => new Date().getFullYear().toString().slice(-2)
-const formatTodayShortDate = () => {
-  const d = new Date()
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const yy = String(d.getFullYear()).slice(-2)
-  return `${dd}/${mm}/${yy}`
-}
+
 
 const normalizeMuestraCode = (raw: string): string => {
   const value = raw.trim().toUpperCase()
@@ -125,9 +120,9 @@ const initialState = (): PesoUnitarioPayload => ({
   equipo_horno_codigo: '-',
   observaciones: '',
   revisado_por: '-',
-  revisado_fecha: formatTodayShortDate(),
+  revisado_fecha: '',
   aprobado_por: '-',
-  aprobado_fecha: formatTodayShortDate(),
+  aprobado_fecha: '',
 })
 
 function avg(values: Array<number | null>): number | null {
@@ -228,6 +223,8 @@ export default function PesoUnitarioForm() {
     localStorage.removeItem(`${DRAFT_KEY}:${ensayoId ?? 'new'}`)
     setForm(initialState())
   }, [ensayoId])
+    const [pendingFormatAction, setPendingFormatAction] = useState<boolean | null>(null)
+
 
   const save = useCallback(async (download: boolean) => {
     if (!form.muestra || !form.numero_ot || !form.fecha_ensayo || !form.realizado_por) {
@@ -379,10 +376,23 @@ export default function PesoUnitarioForm() {
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <button onClick={clearAll} disabled={loading} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white font-medium text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:opacity-50"><Trash2 className="h-4 w-4" />Limpiar todo</button>
-          <button onClick={() => void save(false)} disabled={loading} className="h-11 rounded-lg border border-slate-900 bg-white font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:opacity-50">{loading ? 'Guardando...' : 'Guardar'}</button>
-          <button onClick={() => void save(true)} disabled={loading} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50">{loading ? <><Loader2 className="h-4 w-4 animate-spin" />Procesando...</> : <><Download className="h-4 w-4" />Guardar y Descargar</>}</button>
+          <button onClick={() => setPendingFormatAction(false)} disabled={loading} className="h-11 rounded-lg border border-slate-900 bg-white font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:opacity-50">{loading ? 'Guardando...' : 'Guardar'}</button>
+          <button onClick={() => setPendingFormatAction(true)} disabled={loading} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50">{loading ? <><Loader2 className="h-4 w-4 animate-spin" />Procesando...</> : <><Download className="h-4 w-4" />Guardar y Descargar</>}</button>
         </div>
       </div>
+        <FormatConfirmModal
+            open={pendingFormatAction !== null}
+            formatLabel={`Formato N-xxxx-AG-${new Date().getFullYear().toString().slice(-2)} PESO UNITARIO`}
+            actionLabel={pendingFormatAction ? 'Guardar y Descargar' : 'Guardar'}
+            onClose={() => setPendingFormatAction(null)}
+            onConfirm={() => {
+                if (pendingFormatAction === null) return
+                const shouldDownload = pendingFormatAction
+                setPendingFormatAction(null)
+                void save(shouldDownload)
+            }}
+        />
+
     </div>
   )
 }
