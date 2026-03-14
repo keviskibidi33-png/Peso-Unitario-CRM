@@ -286,10 +286,10 @@ export default function PesoUnitarioForm() {
             <table className="w-full table-fixed border border-slate-300 text-sm">
               <thead className="bg-slate-100 text-xs font-semibold text-slate-800"><tr><th className="border-r border-slate-300 py-1">MUESTRA</th><th className="border-r border-slate-300 py-1">N° OT</th><th className="border-r border-slate-300 py-1">FECHA DE ENSAYO</th><th className="py-1">REALIZADO</th></tr></thead>
               <tbody><tr>
-                <td className="border-r border-t border-slate-300 p-1"><input className={inputClass} value={form.muestra} onChange={(e) => setField('muestra', e.target.value)} onBlur={() => setField('muestra', normalizeMuestraCode(form.muestra))} autoComplete="off" data-lpignore="true" /></td>
-                <td className="border-r border-t border-slate-300 p-1"><input className={inputClass} value={form.numero_ot} onChange={(e) => setField('numero_ot', e.target.value)} onBlur={() => setField('numero_ot', normalizeNumeroOtCode(form.numero_ot))} autoComplete="off" data-lpignore="true" /></td>
-                <td className="border-r border-t border-slate-300 p-1"><input className={inputClass} value={form.fecha_ensayo} onChange={(e) => setField('fecha_ensayo', e.target.value)} onBlur={() => setField('fecha_ensayo', normalizeFlexibleDate(form.fecha_ensayo))} autoComplete="off" data-lpignore="true" placeholder="DD/MM/AA" /></td>
-                <td className="border-t border-slate-300 p-1"><input className={inputClass} value={form.realizado_por} onChange={(e) => setField('realizado_por', e.target.value)} autoComplete="off" data-lpignore="true" /></td>
+                <td className="border-r border-t border-slate-300 p-1"><input className={`${inputClass} text-center`} value={form.muestra} onChange={(e) => setField('muestra', e.target.value)} onBlur={() => setField('muestra', normalizeMuestraCode(form.muestra))} autoComplete="off" data-lpignore="true" /></td>
+                <td className="border-r border-t border-slate-300 p-1"><input className={`${inputClass} text-center`} value={form.numero_ot} onChange={(e) => setField('numero_ot', e.target.value)} onBlur={() => setField('numero_ot', normalizeNumeroOtCode(form.numero_ot))} autoComplete="off" data-lpignore="true" /></td>
+                <td className="border-r border-t border-slate-300 p-1"><input className={`${inputClass} text-center`} value={form.fecha_ensayo} onChange={(e) => setField('fecha_ensayo', e.target.value)} onBlur={() => setField('fecha_ensayo', normalizeFlexibleDate(form.fecha_ensayo))} autoComplete="off" data-lpignore="true" placeholder="DD/MM/AA" /></td>
+                <td className="border-t border-slate-300 p-1"><input className={`${inputClass} text-center`} value={form.realizado_por} onChange={(e) => setField('realizado_por', e.target.value)} autoComplete="off" data-lpignore="true" /></td>
               </tr></tbody>
             </table>
           </div>
