@@ -29,7 +29,7 @@ const EQUIPO_OPTIONS = {
   equipo_molde_codigo: ['-', 'INS-0005 (MOLDE 1)', 'INS-0004 (MOLDE 2)', 'INS-0003 (MOLDE 3)', 'INS-0135 (MOLDE 4)'],
   equipo_balanza_codigo: ['-', 'EQP-0054 (MOLDE 1-2)', 'EQP-0059 (MOLDE 3-4)'],
   equipo_varilla_codigo: ['-', 'INS-0132'],
-  equipo_horno_codigo: ['-', 'EQP-0049'],
+  equipo_horno_codigo: ['-', 'EQP-0150'],
 } as const
 
 const withCurrentOption = (value: string | null | undefined, base: readonly string[]) => {
@@ -76,27 +76,39 @@ const normalizeNumeroOtCode = (raw: string): string => {
 }
 
 const normalizeFlexibleDate = (raw: string): string => {
-  const value = raw.trim()
-  if (!value) return ''
-  const digits = value.replace(/\D/g, '')
-  const yy = shortYear()
-  const pad2 = (part: string) => part.padStart(2, '0').slice(-2)
-  const build = (d: string, m: string, y: string = yy) => `${pad2(d)}/${pad2(m)}/${pad2(y)}`
-  if (value.includes('/')) {
-    const [d = '', m = '', yRaw = ''] = value.split('/').map((p) => p.trim())
-    if (!d || !m) return value
-    let y = yRaw.replace(/\D/g, '')
-    if (y.length === 4) y = y.slice(-2)
-    if (y.length === 1) y = `0${y}`
-    return build(d, m, y || yy)
-  }
-  if (digits.length === 2) return build(digits[0], digits[1])
-  if (digits.length === 3) return build(digits[0], digits.slice(1, 3))
-  if (digits.length === 4) return build(digits.slice(0, 2), digits.slice(2, 4))
-  if (digits.length === 5) return build(digits[0], digits.slice(1, 3), digits.slice(3, 5))
-  if (digits.length === 6) return build(digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 6))
-  if (digits.length >= 8) return build(digits.slice(0, 2), digits.slice(2, 4), digits.slice(6, 8))
-  return value
+    const value = raw.trim()
+    if (!value) return ''
+    const digits = value.replace(/\D/g, '')
+    const currentYear = String(new Date().getFullYear())
+    const pad2 = (part: string) => part.padStart(2, '0').slice(-2)
+    const normalizeYear = (part: string) => {
+        const clean = part.replace(/\D/g, '')
+        if (clean.length >= 4) return clean.slice(0, 4)
+        if (clean.length === 2) return `20${clean}`
+        if (clean.length === 1) return `200${clean}`
+        return currentYear
+    }
+    const build = (y: string, m: string, d: string) => `${normalizeYear(y)}/${pad2(m)}/${pad2(d)}`
+
+    if (value.includes('/') || value.includes('-')) {
+        const [a = '', b = '', c = ''] = value.split(/[/-]/).map((part) => part.trim())
+        if (!a || !b) return value
+        if (a.length === 4) return build(a, b, c || '01')
+        if (c) return build(c, b, a)
+        return value
+    }
+
+    if (digits.length === 8) {
+        if (digits.startsWith('19') || digits.startsWith('20')) return build(digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8))
+        return build(digits.slice(4, 8), digits.slice(2, 4), digits.slice(0, 2))
+    }
+    if (digits.length === 6) return build(digits.slice(4, 6), digits.slice(2, 4), digits.slice(0, 2))
+    if (digits.length === 5) return build(digits.slice(3, 5), digits.slice(1, 3), digits[0])
+    if (digits.length === 4) return build(currentYear, digits.slice(0, 2), digits.slice(2, 4))
+    if (digits.length === 3) return build(currentYear, digits[0], digits.slice(1, 3))
+    if (digits.length === 2) return build(currentYear, digits[0], digits[1])
+
+    return value
 }
 
 const getEnsayoId = () => {
