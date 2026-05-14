@@ -29,7 +29,7 @@ const EQUIPO_OPTIONS = {
   equipo_molde_codigo: ['-', 'INS-0005 (MOLDE 1)', 'INS-0004 (MOLDE 2)', 'INS-0003 (MOLDE 3)', 'INS-0135 (MOLDE 4)'],
   equipo_balanza_codigo: ['-', 'EQP-0054 (MOLDE 1-2)', 'EQP-0059 (MOLDE 3-4)'],
   equipo_varilla_codigo: ['-', 'INS-0132'],
-  equipo_horno_codigo: ['-', 'EQP-0150'],
+  equipo_horno_codigo: ['-', 'EQP-0150', 'EQP-0049'],
 } as const
 
 const withCurrentOption = (value: string | null | undefined, base: readonly string[]) => {
